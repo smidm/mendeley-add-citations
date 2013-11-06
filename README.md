@@ -23,7 +23,7 @@ and fill them to **config.json**. For more help see http://support.mendeley.com/
 
 To start the script run:
 
-$ python mendeley_add_citations.py
+    $ python mendeley_add_citations.py
 
 On the first run you will be asked to go to an url 
 where you have to grant access to your library.
