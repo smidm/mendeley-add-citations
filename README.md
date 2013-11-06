@@ -30,7 +30,7 @@ where you have to grant access to your library.
 
 The whole process takes from **tens of minutes** to **hours**. There are 
 pauses between requests to Google Scholar between 10 and 30 seconds.
-It is needed to mitigate beeing blocked by Google for automated access.
+It is needed to mitigate being blocked by Google for automated access.
 
 License
 -------
