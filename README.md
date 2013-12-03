@@ -8,12 +8,12 @@ Adds citations count to documents in your Mendeley library.
 Requirements
 ------------
 
-oauth2   http://github.com/simplegeo/python-oauth2
-requests https://github.com/kennethreitz/requests
+- oauth2   http://github.com/simplegeo/python-oauth2
+- requests https://github.com/kennethreitz/requests
 
-can be installed with pip
+these can be installed with pip:
 
-$ pip install requests oauth2
+    $ pip install requests oauth2
 
 Usage
 -----
