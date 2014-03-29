@@ -96,22 +96,21 @@ def process_document(document_id, skip_documents=False):
     else:
         year = -1
 
-    print('%s\t\t%s\t%s' %
-         (scholar_articles[0]['num_citations'], year, document['title']))
-    time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))
+    print('%s\t\t%s\tScholar: %s' %
+         (scholar_articles[0]['num_citations'], year, scholar_articles[0]['title']))
+    print('\t\t\tMendeley: %s' % document['title'])
     title_match_ratio = \
         difflib.SequenceMatcher(None, document['title'], scholar_articles[0]['title']).ratio()
     if title_match_ratio < min_title_match_ratio:
-        print('Paper titles differ too much, skipping.')
-        print('Scholar title: %s (match ratio: %f)' %
-             (scholar_articles[0]['title'], title_match_ratio) )
-        return True
-    old_tags = document['tags']
-    citation_tag = ncitations_to_tag(scholar_articles[0]['num_citations'])
-    new_tags = update_tags(old_tags, [('citations_.*', citation_tag)])
+        print('Paper titles differ too much, skipping (match ratio: %f).' % title_match_ratio)
+    time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))
 
-    doc_updated = mendeley.update_document(docid, document={'tags': new_tags})
-    # print doc_updated
+    if not (title_match_ratio < min_title_match_ratio):
+        old_tags = document['tags']
+        citation_tag = ncitations_to_tag(scholar_articles[0]['num_citations'])
+        new_tags = update_tags(old_tags, [('citations_.*', citation_tag)])
+        doc_updated = mendeley.update_document(docid, document={'tags': new_tags})
+        # print doc_updated
     return True
 
 
@@ -125,7 +124,7 @@ else:
 print('See skip_documents variable in mendeley_add_citations.py to change this.\n')
 print('Tags are added immediately. You can interrupt the script and continue later.\n')
 
-print('citations\tyear\tMendeley library title')
+print('citations\tyear\ttitle')
 
 num_skipped = 0
 documents = mendeley.library(page=0, items=items_per_request)
