@@ -29,6 +29,9 @@ max_sleep_time_sec = 30
 # Mendeley x Scholar title matching 
 min_title_match_ratio = 0.6
 
+# number of items to retrieve per request to Mendeley
+items_per_request = 1000
+
 def ncitations_to_tag(num_citations):
 	ranges = [0, 10, 20, 50, 100, 500, 1000, 5000]
 
@@ -57,7 +60,7 @@ def update_tags(oldtags, newtags):
 		for i in xrange(len(updatedtags)):
 			if re.match(pattern, updatedtags[i]):
 				updatedtags[i] = newtag[1]
-				updated = True			
+				updated = True
 				continue
 		if not updated:
 			updatedtags.append(newtag[1])
@@ -72,33 +75,17 @@ def has_citation_tag(tags, patterns):
 
 	return False
 
-# edit config.json first
-mendeley = create_client()
-
-if skip_documents:
-    print('Already tagged documents by mendeley_add_citations.py are skipped.')
-else:
-    print('Processing all documents, including already tagged by mendeley_add_citations.py.')   
-print('See skip_documents variable in mendeley_add_citations.py to change this.\n')
-print('Tags are added immediately. You can interrupt the script and continue later.\n')
-
-print('citations\tyear\tMendeley library title')
-num_skipped = 0
-documents = mendeley.library(items=1000)
-scholar = ScholarQuerier(count=1)
-
-for docid in documents['document_ids']:
+def process_document(document_id, skip_documents=False):
 	document = mendeley.document_details(docid)
 	if skip_documents and has_citation_tag(document['tags'], ['citations_.*']):
-		num_skipped = num_skipped+1
-		continue
+		return False
 
 	try:
 		scholar.query(document['title'])
 		scholar_articles = scholar.articles
 		if len(scholar_articles) == 0:
 			print('No scholar articles found for ' + document['title'])
-			continue
+			return True
 	except urllib2.HTTPError as e:
 		print e.msg
 		print e.reason
@@ -109,7 +96,7 @@ for docid in documents['document_ids']:
 	else:
 		year = -1
 
-	print('%s\t\t%s\t%s' % 
+	print('%s\t\t%s\t%s' %
 		(scholar_articles[0]['num_citations'], year, document['title']))
 	time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))
 	title_match_ratio = \
@@ -117,14 +104,38 @@ for docid in documents['document_ids']:
 	if title_match_ratio < min_title_match_ratio:
 		print('Paper titles differ too much, skipping.')
 		print('Scholar title: %s (match ratio: %f)' %
-		    (scholar_articles[0]['title'], title_match_ratio) )
-		continue
+			(scholar_articles[0]['title'], title_match_ratio) )
+		return True
 	old_tags = document['tags']
 	citation_tag = ncitations_to_tag(scholar_articles[0]['num_citations'])
 	new_tags = update_tags(old_tags, [('citations_.*',citation_tag)])
 
 	doc_updated = mendeley.update_document(docid, document={'tags':new_tags})
 	# print doc_updated
+	return True
+
+# edit config.json first
+mendeley = create_client()
+
+if skip_documents:
+	print('Already tagged documents by mendeley_add_citations.py are skipped.')
+else:
+	print('Processing all documents, including already tagged by mendeley_add_citations.py.')
+print('See skip_documents variable in mendeley_add_citations.py to change this.\n')
+print('Tags are added immediately. You can interrupt the script and continue later.\n')
+
+print('citations\tyear\tMendeley library title')
+
+num_skipped = 0
+documents = mendeley.library(page=0, items=items_per_request)
+for page_number in xrange(documents['total_pages']):
+	documents = mendeley.library(page=page_number, items=items_per_request)
+	scholar = ScholarQuerier(count=1)
+	for docid in documents['document_ids']:
+		if not process_document(docid, skip_documents):
+			num_skipped += 1
+
+
 
 print(str(num_skipped) + ' already processed documents skipped, see skip_documents variable.')
 
