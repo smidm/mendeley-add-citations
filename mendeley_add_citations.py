@@ -84,7 +84,7 @@ print('Tags are added immediately. You can interrupt the script and continue lat
 
 print('citations\tyear\tMendeley library title')
 num_skipped = 0
-documents = mendeley.library(items=-1)
+documents = mendeley.library(items=1000)
 scholar = ScholarQuerier(count=1)
 
 for docid in documents['document_ids']:
