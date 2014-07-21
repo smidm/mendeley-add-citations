@@ -6,14 +6,17 @@
 #
 # For documentation see README.md
 
+import sys
+sys.path.insert(0, './scholar')
+sys.path.insert(0, './mendeley-oapi-example')
+
 from mendeley_client import *
-from scholar import ScholarQuerier
+from scholar import ScholarQuerier, SearchScholarQuery
 import re
 import time
 import difflib
 from random import randint
 import urllib2
-import sys
 
 # skip documents already processed
 skip_documents = True
@@ -29,16 +32,29 @@ min_title_match_ratio = 0.6
 # number of items to retrieve per request to Mendeley
 items_per_request = 1000
 
+# Select between a few citation range tags (e.g. citations_0010-0020) or 
+# lots of exact citation count tags (e.g. xcitations_00123). 
+tags_citation_ranges = True
 
-def ncitations_to_tag(num_citations):
-    ranges = [0, 10, 20, 50, 100, 500, 1000, 5000]
 
-    for i in xrange(1, len(ranges)):
-        if num_citations < ranges[i]:
-            break
-    if num_citations >= ranges[-1]:
-        return 'citations_%04d-' % ranges[-1]
-    return 'citations_%04d-%04d' % (ranges[i-1], ranges[i]-1)
+if tags_citation_ranges:
+    tag_pattern = 'citations_.*'
+
+    def ncitations_to_tag(num_citations):
+        ranges = [0, 10, 20, 50, 100, 500, 1000, 5000]
+
+        for i in xrange(1, len(ranges)):
+            if num_citations < ranges[i]:
+                break
+        if num_citations >= ranges[-1]:
+            return 'citations_%04d-' % ranges[-1]
+        return 'citations_%04d-%04d' % (ranges[i-1], ranges[i]-1)
+        
+else:        
+    tag_pattern = 'xcitations_.*'   
+    
+    def ncitations_to_tag(num_citations):
+        return 'xcitations_%05d' % num_citations    
 
 
 def update_tags(oldtags, newtags):
@@ -81,7 +97,9 @@ def process_document(document_id, skip_documents=False):
         return False
 
     try:
-        scholar.query(document['title'])
+        query = SearchScholarQuery()
+        query.set_phrase(document['title'])
+        scholar.send_query(query)
         scholar_articles = scholar.articles
         if len(scholar_articles) == 0:
             print('No scholar articles found for ' + document['title'])
@@ -108,7 +126,7 @@ def process_document(document_id, skip_documents=False):
     if not (title_match_ratio < min_title_match_ratio):
         old_tags = document['tags']
         citation_tag = ncitations_to_tag(scholar_articles[0]['num_citations'])
-        new_tags = update_tags(old_tags, [('citations_.*', citation_tag)])
+        new_tags = update_tags(old_tags, [(tag_pattern, citation_tag)])
         doc_updated = mendeley.update_document(docid, document={'tags': new_tags})
         # print doc_updated
     return True
@@ -130,7 +148,7 @@ num_skipped = 0
 documents = mendeley.library(page=0, items=items_per_request)
 for page_number in xrange(documents['total_pages']):
     documents = mendeley.library(page=page_number, items=items_per_request)
-    scholar = ScholarQuerier(count=1)
+    scholar = ScholarQuerier()
     for docid in documents['document_ids']:
         if not process_document(docid, skip_documents):
             num_skipped += 1
