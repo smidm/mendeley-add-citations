@@ -1,0 +1,6 @@
+[submodule "mendeley-oapi-example"]
+	path = mendeley-oapi-example
+	url = https://github.com/Mendeley/mendeley-oapi-example.git
+[submodule "scholar"]
+	path = scholar
+	url = https://github.com/ckreibich/scholar.py.git
