@@ -1,0 +1,4 @@
+BeautifulSoup==3.2.1
+rauth==0.7.0
+requests==2.2.1
+wsgiref==0.1.2
