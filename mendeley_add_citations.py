@@ -93,7 +93,7 @@ def has_citation_tag(tags, patterns):
 
 def process_document(document_id, skip_documents=False):
     document = mendeley.document_details(document_id)
-    if skip_documents and has_citation_tag(document['tags'], ['citations_.*']):
+    if skip_documents and has_citation_tag(document['tags'], tag_pattern):
         return False
 
     try:
