@@ -12,8 +12,6 @@ Install python and pip and afterwards run:
 
     git clone https://github.com/smidm/mendeley-add-citations
     cd mendeley-add-citations
-    git submodule init
-    git submodule update
     pip install -r requirements.txt
 
 
