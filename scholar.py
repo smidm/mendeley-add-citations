@@ -1069,7 +1069,7 @@ class ScholarQuerier(object):
             return html
         except Exception as err:
             ScholarUtils.log('info', err_msg + ': %s' % err)
-            return None
+            raise err
 
 
 def txt(querier, with_globals):
@@ -1255,7 +1255,13 @@ scholar.py -c 5 -a "albert einstein" -t --none "quantum theory" --after 1970"""
         options.count = min(options.count, ScholarConf.MAX_PAGE_RESULTS)
         query.set_num_page_results(options.count)
 
-    querier.send_query(query)
+    try:
+        querier.send_query(query)
+    except Exception as err:
+        if '503' in str(err):
+            sys.stderr.write('error: blocked for abusing the service\n')
+            return 1
+        raise err
 
     if options.csv:
         csv(querier)
