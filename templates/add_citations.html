@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Mendeley Add Citations</title>
+</head>
+<body>
+<a href="/logout">Logout</a>
+
+<h1>Adding citation counts...</h1>
+
+<p>{{ session['process_id'] }}: {{ title }}
+</p>
+
+<p>
+{% if error == 'blocked' %}
+    Blocked by Google.
+{% elif error == 'http_error' %}
+    Http error.
+{% elif error == 'skipped' %}
+    Document was already processed and was skipped.
+{% else %}
+    {{ num_citations }} citation.
+{% endif %}
+</p>
+
+<p>
+Refresh to process next document.
+</p>
+
+</body>
+</html>

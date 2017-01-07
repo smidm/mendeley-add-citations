@@ -1,6 +1,0 @@
-{
-        "_comment" : "see README.md",
-	    "client_id" : "<change me>",
-	    "client_secret" : "<change me>",
-	    "redirect_url" : "https://github.com/smidm/mendeley-add-citations/wiki/mendeley-add-citations-Authentification-Setup"
-}
