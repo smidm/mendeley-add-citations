@@ -1,3 +1,5 @@
+:collision: **Currently broken, see [#3](https://github.com/smidm/mendeley-add-citations/issues/3) .**
+
 mendeley-add-citations
 ======================
 
