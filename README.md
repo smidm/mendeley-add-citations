@@ -39,6 +39,11 @@ The whole process takes from **tens of minutes** to **hours**. There are
 pauses between requests to Google Scholar between 5 and 20 seconds to avoid being blocked
 by Google.
 
+Known Problems
+--------------
+
+In case of WSGI application exception **KeyError: 'state'** clear cookies originating from mendeley.com.
+
 License
 -------
 GPL3, see LICENSE
