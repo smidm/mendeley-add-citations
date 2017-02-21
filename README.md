@@ -3,7 +3,7 @@ mendeley-add-citations
 
 Adds citations count to documents in your Mendeley library.
 
-![screenshot](https://raw.github.com/palmstrom/mendeley-add-citations/master/screenshot.png)
+![screenshot](screenshot.png)
 
 Installation
 ------------
