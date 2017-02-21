@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     {% if not error %}
-    <meta http-equiv="refresh" content="1"> 
+    <meta http-equiv="refresh" content="{{ wait_seconds }}"> 
     {% endif %}
     <title>Mendeley Add Citations</title>
 </head>
@@ -27,7 +27,7 @@
 
 {% if not error %}
 <p>
-Will be reloaded automatically to process next document.
+The page will be reloaded automatically to process next document. Waiting {{ wait_seconds }} seconds.
 </p>
 {% endif %}
 

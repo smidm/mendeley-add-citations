@@ -134,16 +134,14 @@ app.debug = True
 app.secret_key = config['clientSecret']
 
 mendeley = Mendeley(config['clientId'], config['clientSecret'], REDIRECT_URI)
-    
+
+
 @app.route('/')
-def home():
-    
-    print session.keys()
+def home():    
     if 'token' in session:
         return redirect('/addCitations')
         
     auth = mendeley.start_authorization_code_flow()
-    print auth.state
     session['state'] = auth.state
 
     return render_template('home.html', login_url=(auth.get_login_url()))
@@ -159,16 +157,17 @@ def auth_return():
 
     return redirect('/addCitations')
 
+
 @app.route('/addCitations')
 def add_citations():
     if 'token' not in session:
         return redirect('/')
     
-    global user_data       
+    global user_data
     mendeley_session = get_session_from_cookies()
     if 'process_id' not in session or 'ids' not in user_data:
-        session['process_id'] = 160
-        user_data['ids'] = [doc.id for doc in mendeley_session.documents.iter()]  
+        session['process_id'] = 0
+        user_data['ids'] = [doc.id for doc in mendeley_session.documents.iter()]       
     
     if skip_documents:
         while True:
@@ -180,8 +179,7 @@ def add_citations():
                 break
 
     error = None
-    num_citations = -1  
-    time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))  
+    num_citations = -1      
     try:
         num_citations = process(document)
     except urllib2.HTTPError as e:
@@ -189,13 +187,15 @@ def add_citations():
         if e.code == 503:
             error = 'blocked'
         else:
-            error = 'http_error'                 
-        
+            error = 'http_error'
+            
     return render_template(
         'add_citations.html', 
         num_citations=num_citations, 
         error=error, 
-        title=document.title)
+        title=document.title,
+        wait_seconds=randint(min_sleep_time_sec, max_sleep_time_sec))
+
  
 @app.route('/logout')
 def logout():
@@ -205,6 +205,7 @@ def logout():
 
 def get_session_from_cookies():
     return MendeleySession(mendeley, session['token'])
+
 
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT' # we don't care about security, this is intended to be run locally
         
