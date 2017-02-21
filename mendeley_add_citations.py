@@ -21,11 +21,11 @@ import urllib2
 import yaml
 
 # skip documents already processed
-skip_documents = False
+skip_documents = True
 
 # min and max sleep time in seconds between Scholar requests
-min_sleep_time_sec = 10
-max_sleep_time_sec = 30
+min_sleep_time_sec = 5
+max_sleep_time_sec = 20
 
 # minimal difflib.SequenceMatcher ratio for 
 # Mendeley x Scholar title matching 
@@ -37,6 +37,9 @@ items_per_request = 1000
 # Select between a few citation range tags (e.g. citations_0010-0020) or 
 # lots of exact citation count tags (e.g. xcitations_00123). 
 tags_citation_ranges = True
+
+# dead simple solution: doesn't support multiple users
+user_data = {}
 
 
 if tags_citation_ranges:
@@ -69,7 +72,10 @@ def update_tags(oldtags, newtags):
     # returns:
     #	updated oldtags
 
-    updatedtags = oldtags[:]
+    if oldtags is not None:
+        updatedtags = oldtags[:]
+    else:
+        updatedtags = []
     for newtag in newtags:
         pattern = newtag[0]
         updated = False
@@ -102,23 +108,12 @@ def process(document):
     scholar.send_query(query)
     scholar_articles = scholar.articles
     if len(scholar_articles) == 0:
-        # print('No scholar articles found for ' + document.title)
         return None
 
-    if 'year' in document:
-        year = document.year
-    else:
-        year = -1
-
-    # print('%s\t\t%s\tScholar: %s' %
-    #     (scholar_articles[0]['num_citations'], year, scholar_articles[0]['title']))
-    #print('\t\t\tMendeley: %s' % document.title)
     title_match_ratio = \
         difflib.SequenceMatcher(None, document.title, scholar_articles[0]['title']).ratio()
     if title_match_ratio < min_title_match_ratio:
         return None
-        # print('Paper titles differ too much, skipping (match ratio: %f).' % title_match_ratio)
-    # time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))
 
     old_tags = document.tags
     citation_tag = ncitations_to_tag(scholar_articles[0]['num_citations'])
@@ -168,34 +163,39 @@ def auth_return():
 def add_citations():
     if 'token' not in session:
         return redirect('/')
-        
+    
+    global user_data       
     mendeley_session = get_session_from_cookies()
+    if 'process_id' not in session or 'ids' not in user_data:
+        session['process_id'] = 160
+        user_data['ids'] = [doc.id for doc in mendeley_session.documents.iter()]  
     
-    print session
+    if skip_documents:
+        while True:
+            document = mendeley_session.documents.get(
+                user_data['ids'][session['process_id']],
+                view='tags')
+            session['process_id'] += 1
+            if not has_citation_tag(document.tags, tag_pattern):
+                break
 
-    if 'process_id' not in session or 'ids' not in session:
-        session['process_id'] = 0
-        session['ids'] = [doc.id for doc in mendeley_session.documents.iter()]
-        # return redirect('/addCitations')
-        
-    document = mendeley_session.documents.get(session['ids'][session['process_id']], view='tags')
-    session['process_id'] += 1
     error = None
-    num_citations = -1
-    if skip_documents and has_citation_tag(document.tags, tag_pattern):
-        error = 'skipped'
-    else:  
-        try:
-            num_citations = process(document)
-        except urllib2.HTTPError as e:
-            if e.code == 503:
-                error = 'blocked'
-            else:
-                error = 'http_error'          
+    num_citations = -1  
+    time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))  
+    try:
+        num_citations = process(document)
+    except urllib2.HTTPError as e:
+        print e
+        if e.code == 503:
+            error = 'blocked'
+        else:
+            error = 'http_error'                 
         
-    # time.sleep(randint(min_sleep_time_sec, max_sleep_time_sec))    
-    
-    return render_template('add_citations.html', num_citations=num_citations, error=error, title=document.title)
+    return render_template(
+        'add_citations.html', 
+        num_citations=num_citations, 
+        error=error, 
+        title=document.title)
  
 @app.route('/logout')
 def logout():
@@ -206,7 +206,7 @@ def logout():
 def get_session_from_cookies():
     return MendeleySession(mendeley, session['token'])
 
-app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'   
+app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT' # we don't care about security, this is intended to be run locally
         
 if __name__ == '__main__':
     app.run()

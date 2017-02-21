@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
+    {% if not error %}
+    <meta http-equiv="refresh" content="1"> 
+    {% endif %}
     <title>Mendeley Add Citations</title>
 </head>
 <body>
@@ -14,19 +17,19 @@
 
 <p>
 {% if error == 'blocked' %}
-    Blocked by Google.
+    Blocked by Google. Try again after few hours or even days.
 {% elif error == 'http_error' %}
-    Http error.
-{% elif error == 'skipped' %}
-    Document was already processed and was skipped.
+    HTTP error. See console.
 {% else %}
-    {{ num_citations }} citation.
+    {{ num_citations }} citations, mendeley tag added.
 {% endif %}
 </p>
 
+{% if not error %}
 <p>
-Refresh to process next document.
+Will be reloaded automatically to process next document.
 </p>
+{% endif %}
 
 </body>
 </html>
