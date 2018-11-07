@@ -3,5 +3,5 @@ rauth==0.7.0
 requests
 wsgiref==0.1.2
 mendeley==0.3.2
-Flask==0.12
+Flask
 PyYAML==3.12
