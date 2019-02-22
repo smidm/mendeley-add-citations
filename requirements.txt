@@ -4,4 +4,4 @@ requests
 wsgiref==0.1.2
 mendeley==0.3.2
 Flask
-PyYAML==3.12
+PyYAML
